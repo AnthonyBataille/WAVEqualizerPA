@@ -11,6 +11,8 @@ void error_handler(const PaError err) {
 	}
 }
 
+/* Stream */
+
 int Stream::callback(const void* inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
@@ -18,6 +20,7 @@ int Stream::callback(const void* inputBuffer, void* outputBuffer,
 	void* userData) {
 	(void)inputBuffer;
 	(void)outputBuffer;
+	(void)framesPerBuffer;
 	(void)timeInfo;
 	(void)statusFlags;
 	(void)userData;
@@ -25,19 +28,8 @@ int Stream::callback(const void* inputBuffer, void* outputBuffer,
 }
 
 PaError Stream::open() {
-	PaError err = Pa_OpenDefaultStream(
-		&_stream,
-		0,
-		2,
-		paFloat32,
-		48000,
-		paFramesPerBufferUnspecified,
-		&Stream::callback,
-		&data);
-
-	error_handler(err);
 	isOpen = true;
-	return err;
+	return paNoError;
 }
 
 PaError Stream::start() {
@@ -58,7 +50,6 @@ PaError Stream::stop() {
 	return err;
 }
 
-
 PaError Stream::close() {
 	PaError err;
 	if (isOpen) {
@@ -73,11 +64,8 @@ PaError Stream::close() {
 }
 
 Stream::Stream() {
-	data.left_phase = 0.0f;
-	data.right_phase = 0.0f;
 	_stream = nullptr;
 	isOpen = false;
-	open();
 }
 
 Stream::~Stream() {
@@ -85,54 +73,55 @@ Stream::~Stream() {
 	close();
 }
 
-int SawToothStream::callback(const void* inputBuffer, void* outputBuffer,
+/* WAVStream */
+
+WAVStream::WAVStream(WAVHandler* wavHandler) {
+	wH = wavHandler;
+	data.left_phase = 0.0f;
+	data.right_phase = 0.0f;
+	data.wH = wH;
+	_stream = nullptr;
+	isOpen = false;
+}
+
+int WAVStream::callback(const void* inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
 	void* userData) {
-	paTestData_t* data = (paTestData_t*)userData;
-	float* out = (float*)outputBuffer;
+	paWavUserData_t* data = (paWavUserData_t*)userData;
+	int16_t* out = (int16_t*)outputBuffer;
 	(void)inputBuffer;
 	(void)timeInfo;
 	(void)statusFlags;
-
-	for (unsigned int i = 0; i < framesPerBuffer; ++i) {
+	for (unsigned long frameIndex = 0U; frameIndex < framesPerBuffer; ++frameIndex) {
 		*out++ = data->left_phase;
 		*out++ = data->right_phase;
-		data->left_phase += 0.001f;
-		if (data->left_phase >= 1.0f) {
-			data->left_phase = -1.0f;
-		}
-
-		data->right_phase += 0.001f;
-		if (data->right_phase >= 2.0f) {
-			data->right_phase = -1.0f;
-		}
+		data->wH->read_next(&(data->left_phase));
+		data->right_phase = 0U;
 	}
-
+	
 	return paContinue;
 }
 
-PaError SawToothStream::open() {
+PaError WAVStream::open() {
 	PaError err = Pa_OpenDefaultStream(
 		&_stream,
 		0,
 		2,
-		paFloat32,
+		paInt16,
 		48000,
 		paFramesPerBufferUnspecified,
-		&SawToothStream::callback,
+		&WAVStream::callback,
 		&data);
 
 	error_handler(err);
-	isOpen = true;
-	return err;
-}
 
-SawToothStream::SawToothStream() {
-	data.left_phase = 0.0f;
-	data.right_phase = 0.0f;
-	_stream = nullptr;
-	isOpen = false;
-	open();
+	wH->open();
+	if (wH->checkHeader()) {
+		if (wH->loadDataChunk()) {
+			isOpen = true;
+		}
+	}
+	return err;
 }

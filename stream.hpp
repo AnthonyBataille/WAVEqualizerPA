@@ -1,15 +1,17 @@
 #pragma once
 
 #include "portaudio.h"
+#include "wav.hpp"
 
 /**
  * @brief Strucutre that holds left & right instant audio data that will be used as user data in the callback.
- * The default output device is opened and used.
+ * A pointer to a WAVHandler object is also used in callbacks to read the audio from the opened WAV file.
  */
 typedef struct {
-	float left_phase;
-	float right_phase;
-} paTestData_t;
+	int16_t left_phase;
+	int16_t right_phase;
+	WAVHandler* wH;
+} paWavUserData_t;
 
 /**
  * @brief Error handler for PortAudio. In case of failure, terminate PA and exit.
@@ -22,20 +24,19 @@ void error_handler(const PaError err);
  */
 class Stream {
 protected:
-	paTestData_t data;
 	PaStream* _stream;
-	bool isOpen;
 
 	static int callback(const void* inputBuffer, void* outputBuffer,
 		unsigned long framesPerBuffer,
 		const PaStreamCallbackTimeInfo* timeInfo,
 		PaStreamCallbackFlags statusFlags,
 		void* userData);
-	PaError open();
-
 public:
+	bool isOpen;
+
 	PaError start();
 	PaError stop();
+	PaError open();
 	PaError close();
 
 	Stream();
@@ -43,17 +44,21 @@ public:
 };
 
 /**
- * @brief Saw Tooth Stream class derived from Stream class.
- * It implements a callback function taken from PA docuentation that generates the saw tooth signal.
+ * @brief Derived class from Stream that makes use of WAVHandler to read the audio from a  WAV file.
+ * The WAV file has 1 channel with encoded data in signed PCM 16 bits (2 bytes per block).
+ * The default output device is opened and used.
  */
-class SawToothStream: public Stream {
+class WAVStream: public Stream {
 protected:
+	paWavUserData_t data;
+	WAVHandler* wH;
+
 	static int callback(const void* inputBuffer, void* outputBuffer,
 		unsigned long framesPerBuffer,
 		const PaStreamCallbackTimeInfo* timeInfo,
 		PaStreamCallbackFlags statusFlags,
 		void* userData);
-	PaError open();
 public:
-	SawToothStream();
+	PaError open();
+	WAVStream(WAVHandler* wavHandler);
 };
