@@ -4,12 +4,15 @@
 
 #include "wav.hpp"
 
-void WAVHandler::open() {
+constexpr std::streamoff headerSize = 44;
+
+bool WAVHandler::open() {
 	wavFile = std::ifstream(wavFilePath, std::ios::binary);
 	if (!wavFile) {
 		std::cerr << "Unable to open the file " << wavFilePath << std::endl;
-		exit(1); // Add common function to exit with PATerminate
+		return false;
 	}
+	return true;
 }
 
 void WAVHandler::close() {
@@ -23,123 +26,116 @@ void WAVHandler::close() {
 }
 
 bool WAVHandler::checkHeader() {
-	if (wavFile.is_open() == false) {
+	if (!wavFile.is_open()) {
 		return false;
 	}
-
-	constexpr unsigned int headersize = 44U;
-	unsigned int cursor = 0U;
 	
 	/* FileTypeBlocID */
 	char fileTypeBlocID[4];
-	wavFile.read(fileTypeBlocID, 4);
-	if (wavFile.gcount() < 4 || std::string(fileTypeBlocID, 4) != "RIFF") {
+	wavFile.read(fileTypeBlocID, sizeof fileTypeBlocID);
+	if (wavFile.gcount() != sizeof fileTypeBlocID || std::string(fileTypeBlocID, sizeof fileTypeBlocID) != "RIFF") {
 		return false;
 	}
 
 	/* File size */
 	uint32_t fileSize;
-	wavFile.read(reinterpret_cast<char*>(&fileSize), 4);
-	if (wavFile.gcount() < 4) {
+	wavFile.read(reinterpret_cast<char*>(&fileSize), sizeof fileSize);
+	if (wavFile.gcount() != sizeof fileSize) {
 		return false;
 	}
 
 	/* FileFormatID */
 	char fileFormatID[4];
-	wavFile.read(fileFormatID, 4);
-	if (wavFile.gcount() < 4 || std::string(fileFormatID, 4) != "WAVE") {
+	wavFile.read(fileFormatID, sizeof fileFormatID);
+	if (wavFile.gcount() != sizeof fileFormatID || std::string(fileFormatID, sizeof fileFormatID) != "WAVE") {
 		return false;
 	}
 
 	/* FormatBlocID */
 	char formatBlocID[4];
-	const char formatBlocIDRef[5] = { 0x66, 0x6D, 0x74, 0x20, 0x00 };
-	wavFile.read(formatBlocID, 4);
-	if (wavFile.gcount() < 4 || std::string(formatBlocID, 4) != formatBlocIDRef) {
+	wavFile.read(formatBlocID, sizeof formatBlocID);
+	if (wavFile.gcount() != sizeof formatBlocID || std::string(formatBlocID, sizeof formatBlocID) != "fmt ") {
 		return false;
 	}
 
 	/* Bloc size */
 	uint32_t blocSize;
-	wavFile.read(reinterpret_cast<char*>(&blocSize), 4);
-	if (wavFile.gcount() < 4) {
+	wavFile.read(reinterpret_cast<char*>(&blocSize), sizeof blocSize);
+	if (wavFile.gcount() != sizeof blocSize) {
 		return false;
 	}
 
 	/* Audio Format */
 	uint16_t audioFormat;
-	wavFile.read(reinterpret_cast<char*>(&audioFormat), 2);
-	if (wavFile.gcount() < 2 || audioFormat != 1U) {
+	wavFile.read(reinterpret_cast<char*>(&audioFormat), sizeof audioFormat);
+	if (wavFile.gcount() != sizeof audioFormat || audioFormat != 1U) {
 		return false;
 	}
 	
 	/* Number of channels */
 	uint16_t numChannels;
-	wavFile.read(reinterpret_cast<char*>(&numChannels), 2);
-	if (wavFile.gcount() < 2 || numChannels != 1U) {
+	wavFile.read(reinterpret_cast<char*>(&numChannels), sizeof numChannels);
+	if (wavFile.gcount() != sizeof numChannels || numChannels != 2U) {
 		return false;
 	}
 
 	/* Frequency */
 	uint32_t frequency;
-	wavFile.read(reinterpret_cast<char*>(&frequency), 4);
-	if (wavFile.gcount() < 4 || frequency != 48000U) {
+	wavFile.read(reinterpret_cast<char*>(&frequency), sizeof frequency);
+	if (wavFile.gcount() != sizeof frequency || frequency != 48000U) {
 		return false;
 	}
 
 	/* Bytes per second */
 	uint32_t bytestPerSec;
-	wavFile.read(reinterpret_cast<char*>(&bytestPerSec), 4);
-	if (wavFile.gcount() < 4 || bytestPerSec != 96000U) {
+	wavFile.read(reinterpret_cast<char*>(&bytestPerSec), sizeof bytestPerSec);
+	if (wavFile.gcount() != sizeof bytestPerSec || bytestPerSec != 192000U) {
 		return false;
 	}
 
 	/* Bytes per bloc */
 	uint16_t bPerBloc;
-	wavFile.read(reinterpret_cast<char*>(&bPerBloc), 2);
-	if (wavFile.gcount() < 2 || bPerBloc != 2U) {
+	wavFile.read(reinterpret_cast<char*>(&bPerBloc), sizeof bPerBloc);
+	if (wavFile.gcount() != sizeof bPerBloc || bPerBloc != 4U) {
 		return false;
 	}
 	bytesPerBloc = bPerBloc;
 
 	/* Bits per sample */
 	uint16_t bitsPerSample;
-	wavFile.read(reinterpret_cast<char*>(&bitsPerSample), 2);
-	if (wavFile.gcount() < 2 || bitsPerSample != 16U) {
+	wavFile.read(reinterpret_cast<char*>(&bitsPerSample), sizeof bitsPerSample);
+	if (wavFile.gcount() != sizeof bitsPerSample || bitsPerSample != 16U) {
 		return false;
 	}
 
 	/* DatablocID */
 	char dataBlocID[4];
-	wavFile.read(dataBlocID, 4);
-	if (wavFile.gcount() < 4 || std::string(dataBlocID, 4) != "data") {
+	wavFile.read(dataBlocID, sizeof dataBlocID);
+	if (wavFile.gcount() != sizeof dataBlocID || std::string(dataBlocID, sizeof dataBlocID) != "data") {
 		return false;
 	}
 
 	/* Data size */
 	uint32_t dataSize;
-	wavFile.read(reinterpret_cast<char*>(&dataSize), 4);
-	if (wavFile.gcount() < 4) {
+	wavFile.read(reinterpret_cast<char*>(&dataSize), sizeof dataSize);
+	if (wavFile.gcount() != sizeof dataSize) {
 		return false;
 	}
 	dataChunkSize = dataSize;
 
-	unsigned int pos = wavFile.tellg();
-	if (pos != 44U) {
-		return false;
-	}
-	return true;
+	std::streamoff pos = wavFile.tellg();
+	return (pos == headerSize);
 }
 
 bool WAVHandler::loadDataChunk() {
 	if (dataChunkSize > 0) {
-		wavFile.seekg(44);
+		wavFile.seekg(headerSize);
 		size_t num_samples = dataChunkSize / bytesPerBloc;
 		dataChunk->reserve(num_samples);
 		for (size_t i = 0U; i < num_samples; ++i) {
-			uint16_t bloc;
+			uint32_t bloc;
 			wavFile.read(reinterpret_cast<char*>(&bloc), bytesPerBloc);
-			if (wavFile.gcount() != 2) {
+			if (wavFile.gcount() != sizeof bloc)  {
 				return false;
 			}
 			dataChunk->push_back(bloc);
@@ -149,24 +145,25 @@ bool WAVHandler::loadDataChunk() {
 	return true;
 }
 
-void WAVHandler::read_next(int16_t* buffer) {
-	*buffer = *reinterpret_cast<const int16_t*>(&(*dataCursor));;
+void WAVHandler::read_next(int16_t& buffer_left, int16_t& buffer_right) {
+	int32_t buffer_raw = *reinterpret_cast<const int32_t*>(&(*dataCursor));
+	buffer_left = (buffer_raw & 0xFFFF0000) >> 16;
+	buffer_right = buffer_raw & 0xFFFF;
 	++dataCursor;
 	if (dataCursor == dataChunk->cend()) {
 		dataCursor = dataChunk->cbegin();
 	}
 }
 
-WAVHandler::WAVHandler(std::string filePath) {
+WAVHandler::WAVHandler(const std::string& filePath) {
 	wavFilePath = filePath;
-	dataChunk = new std::vector<uint16_t>();
+	dataChunk = new std::vector<uint32_t>();
 	dataChunkSize = 0U;
 	dataCursor = dataChunk->cbegin();
 	bytesPerBloc = 0U;
 }
 
 WAVHandler::~WAVHandler() {
-	std::cout << "~WAVHandler" << std::endl;
 	close();
 	delete dataChunk;
 }

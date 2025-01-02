@@ -23,7 +23,7 @@ message(STATUS "${PROJECT_SOURCE_DIR}")
 
 if(MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D__SCL_SECURE_NO_WARNINGS -DNO_WARN_MBCS_MFC_DEPRECATION)
-	set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/WX")
+	set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/Wall")
 
     target_link_libraries(${PROJECT_NAME} ${PORTAUDIO_ROOT}/build/msvc/x64/Debug/portaudio_x64.lib)
 else()

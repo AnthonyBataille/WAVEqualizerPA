@@ -32,7 +32,7 @@ int SawToothStream::callback(const void* inputBuffer, void* outputBuffer,
 	return paContinue;
 }
 
-PaError SawToothStream::open() {
+bool SawToothStream::open() {
 	PaError err = Pa_OpenDefaultStream(
 		&_stream,
 		0,
@@ -44,8 +44,11 @@ PaError SawToothStream::open() {
 		&data);
 
 	error_handler(err);
-	isOpen = true;
-	return err;
+	if (err == paNoError) {
+		isOpen = true;
+		return true;
+	}
+	return false;
 }
 
 SawToothStream::SawToothStream() {
@@ -57,20 +60,29 @@ SawToothStream::SawToothStream() {
 
 void runTestStream() {
 	SawToothStream defaultStream;
-	defaultStream.open();
-	if (defaultStream.isOpen == false) {
-		std::cerr << "Unable to open the stream" << std::endl;
+
+	if (!defaultStream.open()) {
+		std::cerr << "Unable to open the stream." << std::endl;
 		return;
 	}
 
 	std::cout << "Press Enter to start." << std::endl;
 	std::cin.get();
 
-	defaultStream.start();
+	if (!defaultStream.start()) {
+		std::cerr << "Unable to start the stream." << std::endl;
+		return;
+	}
 
 	std::cout << "Press Enter to stop." << std::endl;
 	std::cin.get();
 
-	defaultStream.stop();
-	defaultStream.close();
+	if (!defaultStream.stop()) {
+		std::cerr << "Unable to stop the stream." << std::endl;
+		return;
+	}
+
+	if (!defaultStream.close()) {
+		std::cerr << "Unable to close the stream." << std::endl;
+	}
 }

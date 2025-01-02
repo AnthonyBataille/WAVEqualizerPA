@@ -8,25 +8,40 @@
  * @brief Open the test audio file and run a simple playback.
  */
 void runWAVStream() {
-	WAVHandler wH = WAVHandler("C:/Users/batai/Documents/Prog/WAVEqualizerPA/test.wav");
+	WAVHandler wH = WAVHandler("C:/Users/batai/Documents/Prog/WAVEqualizerPA/The Top of the World ~Dance Mix~.wav");
 	WAVStream stream(&wH);
-	stream.open();
-	if (stream.isOpen == false) {
-		std::cerr << "Unable to open the stream" << std::endl;
+	;
+	if (!stream.open()) {
+		std::cerr << "Unable to open the stream." << std::endl;
 		return;
 	}
 
-	stream.start();
+	std::cout << "Press Enter to start." << std::endl;
+	std::cin.get();
+
+	if (!stream.start()) {
+		std::cerr << "Unable to start the stream." << std::endl;
+		return;
+	}
 
 	std::cout << "Press Enter to stop." << std::endl;
 	std::cin.get();
 	
-	stream.stop();
-	stream.close();
+	if (!stream.stop()) {
+		std::cerr << "Unable to stop the stream." << std::endl;
+		return;
+	}
+
+	if (!stream.close()) {
+		std::cerr << "Unable to close the stream." << std::endl;
+		return;
+	}
 	wH.close();
 }
 
 int main(int argc, char* argv[]) {
+	(void)argc;
+	(void)argv;
 	PaError err;
 	err = Pa_Initialize();
 	if (err != paNoError) {

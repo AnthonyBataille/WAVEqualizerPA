@@ -14,9 +14,9 @@ typedef struct {
 } paWavUserData_t;
 
 /**
- * @brief Error handler for PortAudio. In case of failure, terminate PA and exit.
+ * @brief Error handler for PortAudio. In case of failure, terminate PA and return false.
  */
-void error_handler(const PaError err);
+bool error_handler(const PaError err);
 
 /**
  * @brief A base class of stream object that holds the underlying PaStream, open, close routines, etc...
@@ -34,10 +34,10 @@ protected:
 public:
 	bool isOpen;
 
-	PaError start();
-	PaError stop();
-	PaError open();
-	PaError close();
+	bool start();
+	bool stop();
+	bool open();
+	bool close();
 
 	Stream();
 	~Stream();
@@ -59,6 +59,8 @@ protected:
 		PaStreamCallbackFlags statusFlags,
 		void* userData);
 public:
-	PaError open();
+	bool open();
 	WAVStream(WAVHandler* wavHandler);
+
+	WAVStream() = default;
 };

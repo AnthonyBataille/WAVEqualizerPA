@@ -19,16 +19,18 @@ protected:
 	uint16_t bytesPerBloc;
 	uint32_t dataChunkSize;
 
-	std::vector<uint16_t>* dataChunk;
-	std::vector<uint16_t>::const_iterator dataCursor;
+	std::vector<uint32_t>* dataChunk;
+	std::vector<uint32_t>::const_iterator dataCursor;
 
 public:
-	void open();
+	bool open();
 	void close();
 	bool checkHeader();
 	bool loadDataChunk();
-	void read_next(int16_t* buffer);
+	void read_next(int16_t& buffer_left, int16_t& buffer_right);
 
-	WAVHandler(std::string filePath);
+	WAVHandler(const std::string& filePath);
 	~WAVHandler();
+
+	WAVHandler() = default;
 };

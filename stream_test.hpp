@@ -27,6 +27,6 @@ protected:
 		PaStreamCallbackFlags statusFlags,
 		void* userData);
 public:
-	PaError open();
+	bool open();
 	SawToothStream();
 };
