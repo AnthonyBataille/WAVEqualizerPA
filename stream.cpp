@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "portaudio.h"
 #include "stream.hpp"
 
@@ -28,7 +29,7 @@ int Stream::callback(const void* inputBuffer, void* outputBuffer,
 }
 
 bool Stream::open() {
-	isOpen = true;
+	_isOpen = true;
 	return true;
 }
 
@@ -49,10 +50,10 @@ bool Stream::stop() {
 
 bool Stream::close() {
 	PaError err;
-	if (isOpen) {
+	if (_isOpen) {
 		err = Pa_CloseStream(_stream);
 		error_handler(err);
-		isOpen = false;
+		_isOpen = false;
 		return (err == paNoError);
 	}
 	return true;
@@ -60,7 +61,7 @@ bool Stream::close() {
 
 Stream::Stream() {
 	_stream = nullptr;
-	isOpen = false;
+	_isOpen = false;
 }
 
 Stream::~Stream() {
@@ -70,13 +71,15 @@ Stream::~Stream() {
 
 /* WAVStream */
 
-WAVStream::WAVStream(WAVHandler* wavHandler) {
-	wH = wavHandler;
-	data.left_phase = 0U;
-	data.right_phase = 0U;
-	data.wH = wH;
+WAVStream::WAVStream(WAVHandler* wavHandler, PNFilter* filter_left, PNFilter* filter_right) {
+	_wH = wavHandler;
+	_data.left_phase = 0U;
+	_data.right_phase = 0U;
+	_data.wH = wavHandler;
+	_data.filter_left = filter_left;
+	_data.filter_right = filter_right;
 	_stream = nullptr;
-	isOpen = false;
+	_isOpen = false;
 }
 
 int WAVStream::callback(const void* inputBuffer, void* outputBuffer,
@@ -84,17 +87,18 @@ int WAVStream::callback(const void* inputBuffer, void* outputBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
 	void* userData) {
-	paWavUserData_t* data = (paWavUserData_t*)userData;
+	paWavUserData_t* _data = (paWavUserData_t*)userData;
 	int16_t* out = (int16_t*)outputBuffer;
 	(void)inputBuffer;
 	(void)timeInfo;
 	(void)statusFlags;
 	for (unsigned long frameIndex = 0U; frameIndex < framesPerBuffer; ++frameIndex) {
-		data->wH->read_next(data->left_phase, data->right_phase);
-		*out++ = data->left_phase;
-		*out++ = data->right_phase;
+		_data->wH->read_next(_data->left_phase, _data->right_phase);
+		PNFilter& filter_left = *(_data->filter_left);
+		PNFilter& filter_right = *(_data->filter_right);
+		*out++ = static_cast<int16_t>(filter_left(static_cast<float>(_data->left_phase)));
+		*out++ = static_cast<int16_t>(filter_right(static_cast<float>(_data->right_phase)));
 	}
-	
 	return paContinue;
 }
 
@@ -107,19 +111,19 @@ bool WAVStream::open() {
 		48000,
 		paFramesPerBufferUnspecified,
 		&WAVStream::callback,
-		&data);
+		&_data);
 
 	error_handler(err);
 
-	if (!wH->open()) {
+	if (!_wH->open()) {
 		return false;
 	}
-	if (!wH->checkHeader()) {
+	if (!_wH->checkHeader()) {
 		return false;
 	}
-	if (!wH->loadDataChunk()) {
+	if (!_wH->loadDataChunk()) {
 		return false;
 	}
-	isOpen = true;
+	_isOpen = true;
 	return true;
 }

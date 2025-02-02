@@ -2,6 +2,7 @@
 
 #include "portaudio.h"
 #include "wav.hpp"
+#include "filter.hpp"
 
 /**
  * @brief Strucutre that holds left & right instant audio data that will be used as user data in the callback.
@@ -11,6 +12,8 @@ typedef struct {
 	int16_t left_phase;
 	int16_t right_phase;
 	WAVHandler* wH;
+	PNFilter* filter_left;
+	PNFilter* filter_right;
 } paWavUserData_t;
 
 /**
@@ -32,7 +35,7 @@ protected:
 		PaStreamCallbackFlags statusFlags,
 		void* userData);
 public:
-	bool isOpen;
+	bool _isOpen;
 
 	bool start();
 	bool stop();
@@ -50,8 +53,8 @@ public:
  */
 class WAVStream: public Stream {
 protected:
-	paWavUserData_t data;
-	WAVHandler* wH;
+	paWavUserData_t _data;
+	WAVHandler* _wH;
 
 	static int callback(const void* inputBuffer, void* outputBuffer,
 		unsigned long framesPerBuffer,
@@ -60,7 +63,7 @@ protected:
 		void* userData);
 public:
 	bool open();
-	WAVStream(WAVHandler* wavHandler);
+	WAVStream(WAVHandler* wavHandler, PNFilter* filter_left, PNFilter* filter_right);
 
 	WAVStream() = default;
 };

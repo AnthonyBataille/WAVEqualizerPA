@@ -20,7 +20,7 @@ typedef struct {
  */
 class SawToothStream: public Stream {
 protected:
-	paTestData_t data;
+	paTestData_t _data;
 	static int callback(const void* inputBuffer, void* outputBuffer,
 		unsigned long framesPerBuffer,
 		const PaStreamCallbackTimeInfo* timeInfo,

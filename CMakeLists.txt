@@ -5,7 +5,7 @@ project(WAVEqualizerPA VERSION 0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(SOURCES "main.cpp" "devices.cpp" "stream.cpp" "wav.cpp")
+set(SOURCES "main.cpp" "devices.cpp" "stream.cpp" "wav.cpp" "filter.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

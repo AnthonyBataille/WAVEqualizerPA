@@ -3,7 +3,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <iterator>
 
 /**
  * @brief A class that allows opening and reading through a WAV file that has the following properties:

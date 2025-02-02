@@ -9,23 +9,23 @@ int SawToothStream::callback(const void* inputBuffer, void* outputBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
 	void* userData) {
-	paTestData_t* data = (paTestData_t*)userData;
+	paTestData_t* _data = (paTestData_t*)userData;
 	float* out = (float*)outputBuffer;
 	(void)inputBuffer;
 	(void)timeInfo;
 	(void)statusFlags;
 
 	for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-		*out++ = data->left_phase;
-		*out++ = data->right_phase;
-		data->left_phase += 0.001f;
-		if (data->left_phase >= 1.0f) {
-			data->left_phase = -1.0f;
+		*out++ = _data->left_phase;
+		*out++ = _data->right_phase;
+		_data->left_phase += 0.001f;
+		if (_data->left_phase >= 1.0f) {
+			_data->left_phase = -1.0f;
 		}
 
-		data->right_phase += 0.001f;
-		if (data->right_phase >= 2.0f) {
-			data->right_phase = -1.0f;
+		_data->right_phase += 0.001f;
+		if (_data->right_phase >= 2.0f) {
+			_data->right_phase = -1.0f;
 		}
 	}
 
@@ -41,21 +41,21 @@ bool SawToothStream::open() {
 		48000,
 		paFramesPerBufferUnspecified,
 		&SawToothStream::callback,
-		&data);
+		&_data);
 
 	error_handler(err);
 	if (err == paNoError) {
-		isOpen = true;
+		_isOpen = true;
 		return true;
 	}
 	return false;
 }
 
 SawToothStream::SawToothStream() {
-	data.left_phase = 0.0f;
-	data.right_phase = 0.0f;
+	_data.left_phase = 0.0f;
+	_data.right_phase = 0.0f;
 	_stream = nullptr;
-	isOpen = false;
+	_isOpen = false;
 }
 
 void runTestStream() {

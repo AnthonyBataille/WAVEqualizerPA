@@ -3,13 +3,20 @@
 #include "devices.hpp"
 #include "stream.hpp"
 #include "wav.hpp"
+#include "filter.hpp"
 
 /**
  * @brief Open the test audio file and run a simple playback.
  */
 void runWAVStream() {
 	WAVHandler wH = WAVHandler("C:/Users/batai/Documents/Prog/WAVEqualizerPA/The Top of the World ~Dance Mix~.wav");
-	WAVStream stream(&wH);
+	const float f_c = 6000.0f;
+	const float _BW = 500.0f;
+	const float f_max = 24000.0f;
+	const float _G = 0.01f;
+	PNFilter filter_left(_BW, _G, f_c, f_max);
+	PNFilter filter_right(_BW, _G, f_c, f_max);
+	WAVStream stream(&wH, &filter_left, &filter_right);
 	;
 	if (!stream.open()) {
 		std::cerr << "Unable to open the stream." << std::endl;
