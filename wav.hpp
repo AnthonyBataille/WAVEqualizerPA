@@ -6,7 +6,7 @@
 
 /**
  * @brief A class that allows opening and reading through a WAV file that has the following properties:
- * Numbr of channels: 1
+ * Number of channels: 1
  * Sample format: Signed 16 bits PCM
  * Bloc size: 16 bits
  */

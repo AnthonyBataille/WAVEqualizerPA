@@ -5,12 +5,14 @@ project(WAVEqualizerPA VERSION 0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(SOURCES "main.cpp" "devices.cpp" "stream.cpp" "wav.cpp" "filter.cpp")
+set(SOURCES WIN32 "main.cpp" "devices.cpp" "stream.cpp" "wav.cpp" "filter.cpp" "resources.rc" "gui.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 set(PORTAUDIO_ROOT "${PROJECT_SOURCE_DIR}/portaudio")
 set(PORTAUDIO_DLL "${PORTAUDIO_ROOT}/build/msvc/x64/Debug/portaudio_x64.dll")
+
+target_link_libraries(${PROJECT_NAME} comctl32)
 
 add_custom_command(TARGET WAVEqualizerPA POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy

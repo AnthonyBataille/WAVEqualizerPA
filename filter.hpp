@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <deque>
+#include <list>
 
 constexpr float PI = 3.141592f;
 
@@ -12,8 +12,8 @@ constexpr float PI = 3.141592f;
  */
 class Filter {
 protected:
-	std::deque<float> _last_samples_input;
-	std::deque<float> _last_samples_output;
+	std::list<float> _last_samples_input;
+	std::list<float> _last_samples_output;
 
 	/**
 	 * @brief Feedback coefficients.

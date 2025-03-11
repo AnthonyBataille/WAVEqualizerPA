@@ -4,6 +4,9 @@
 #include "stream.hpp"
 #include "wav.hpp"
 #include "filter.hpp"
+#include "gui.hpp"
+
+#include <windows.h>
 
 /**
  * @brief Open the test audio file and run a simple playback.
@@ -46,20 +49,33 @@ void runWAVStream() {
 	wH.close();
 }
 
-int main(int argc, char* argv[]) {
-	(void)argc;
-	(void)argv;
-	PaError err;
-	err = Pa_Initialize();
-	if (err != paNoError) {
-		std::cerr << "PA init error: " << Pa_GetErrorText(err) << std::endl;
-		return 1;
+//int main(int argc, char* argv[]) {
+//	(void)argc;
+//	(void)argv;
+//	PaError err;
+//	err = Pa_Initialize();
+//	if (err != paNoError) {
+//		std::cerr << "PA init error: " << Pa_GetErrorText(err) << std::endl;
+//		return 1;
+//	}
+//
+//	printPADevicesInfo();
+//
+//	runWAVStream();
+//	
+//	Pa_Terminate();
+//	return 0;
+//}
+
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	PWSTR pCmdLine, int nCmdShow) {
+	MSG msg{};
+	bool guiInitSuccess = false;
+	GUI mainGUI(hInstance, nCmdShow, guiInitSuccess);
+	if (guiInitSuccess) {
+		mainGUI.runMessageLoop(msg);
 	}
-
-	printPADevicesInfo();
-
-	runWAVStream();
 	
-	Pa_Terminate();
-	return 0;
+	return static_cast<int>(msg.wParam);
 }

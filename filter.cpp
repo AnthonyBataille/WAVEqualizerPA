@@ -46,8 +46,8 @@ PNFilter::PNFilter(const float Bandwidth, const float gain, const float center_f
 
 	compute_coefficients();
 
-	_last_samples_input = std::deque<float>(_coef_b.size());
-	_last_samples_output = std::deque<float>(_coef_a.size());
+	_last_samples_input = std::list<float>(_coef_b.size());
+	_last_samples_output = std::list<float>(_coef_a.size());
 }
 
 PNFilter::~PNFilter() = default;

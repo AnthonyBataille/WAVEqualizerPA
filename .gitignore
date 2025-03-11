@@ -402,3 +402,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Personal documentation
+doc/*
+
+# Audio files
+*.wav
