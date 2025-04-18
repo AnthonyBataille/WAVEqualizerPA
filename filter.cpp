@@ -36,6 +36,7 @@ void PNFilter::compute_coefficients() {
 	_coef_b[2] = (sqrt_G - _G * tan_B_2) / (sqrt_G + tan_B_2);
 }
 
+PNFilter::PNFilter() : _BW(0.0F), _G(0.0F), _omega_c(0.0F) {}
 
 PNFilter::PNFilter(const float Bandwidth, const float gain, const float center_frenquency, const float max_frequency) {
 	_BW = Bandwidth / max_frequency * PI;

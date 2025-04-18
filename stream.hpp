@@ -19,7 +19,7 @@ typedef struct {
 /**
  * @brief Error handler for PortAudio. In case of failure, terminate PA and return false.
  */
-bool error_handler(const PaError err);
+bool errorHandlerPA(const PaError err);
 
 /**
  * @brief A base class of stream object that holds the underlying PaStream, open, close routines, etc...
@@ -35,7 +35,8 @@ protected:
 		PaStreamCallbackFlags statusFlags,
 		void* userData);
 public:
-	bool _isOpen;
+	bool isOpen;
+	bool isStarted;
 
 	bool start();
 	bool stop();
@@ -63,7 +64,22 @@ protected:
 		void* userData);
 public:
 	bool open();
-	WAVStream(WAVHandler* wavHandler, PNFilter* filter_left, PNFilter* filter_right);
+	bool close();
+	WAVStream(WAVHandler* const wavHandler, PNFilter* const filter_left, PNFilter* const filter_right);
 
 	WAVStream() = default;
+};
+
+/**
+ * @brief AudioHandle class that contains the audio objects: WAV handler, Stream and filters.
+ */
+class AudioHandle {
+public:
+	WAVHandler wH;
+	PNFilter filterLeft;
+	PNFilter filterRight;
+	WAVStream stream;
+
+	AudioHandle();
+	~AudioHandle() = default;
 };

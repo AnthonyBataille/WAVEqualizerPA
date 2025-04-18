@@ -10,7 +10,7 @@ constexpr std::streamoff headerSize = 44;
 bool WAVHandler::open() {
 	wavFile = std::ifstream(wavFilePath, std::ios::binary);
 	if (!wavFile) {
-		std::cerr << "Unable to open the file " << wavFilePath << std::endl;
+		std::wcerr << L"Unable to open the file " << wavFilePath << std::endl;
 		return false;
 	}
 	return true;
@@ -20,9 +20,11 @@ void WAVHandler::close() {
 	if (wavFile.is_open()) {
 		wavFile.close();
 	}
-	dataChunk->clear();
+	if (dataChunk != nullptr) {
+		dataChunk->clear();
+		dataCursor = dataChunk->cbegin();
+	}
 	dataChunkSize = 0U;
-	dataCursor = dataChunk->cbegin();
 	bytesPerBloc = 0U;
 }
 
@@ -156,15 +158,24 @@ void WAVHandler::read_next(int16_t& buffer_left, int16_t& buffer_right) {
 	}
 }
 
-WAVHandler::WAVHandler(const std::string& filePath) {
+void WAVHandler::init(const std::wstring& filePath) {
 	wavFilePath = filePath;
-	dataChunk = new std::vector<uint32_t>();
+	if(dataChunk != nullptr) {
+		dataChunk->clear();
+	}
+	dataChunk = std::make_unique<std::vector<uint32_t>>();
 	dataChunkSize = 0U;
 	dataCursor = dataChunk->cbegin();
 	bytesPerBloc = 0U;
 }
 
+WAVHandler::WAVHandler(const std::wstring& filePath) {
+	init(filePath);
+}
+
 WAVHandler::~WAVHandler() {
 	close();
-	delete dataChunk;
+	dataChunk.release();
 }
+
+WAVHandler::WAVHandler() : wavFile(), wavFilePath(), bytesPerBloc(0U), dataChunkSize(0U), dataChunk(nullptr), dataCursor() {}

@@ -60,6 +60,7 @@ protected:
 	void compute_coefficients();
 
 public:
+	PNFilter();
 	PNFilter(const float Bandwidth, const float gain, const float center_frequency, const float max_frequency);
 	~PNFilter();
 };

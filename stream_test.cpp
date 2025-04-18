@@ -43,7 +43,7 @@ bool SawToothStream::open() {
 		&SawToothStream::callback,
 		&_data);
 
-	error_handler(err);
+	errorHandlerPA(err);
 	if (err == paNoError) {
 		_isOpen = true;
 		return true;

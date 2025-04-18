@@ -1,16 +1,16 @@
 #include <iostream>
 #include <vector>
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+
+#include <windows.h>
+#include <iostream>
+#include <string>
+#include <cwchar>
 #include "portaudio.h"
 #include "stream.hpp"
-
-bool error_handler(const PaError err) {
-	if (err != paNoError) {
-		std::cout << "PA error: " << Pa_GetErrorText(err) << std::endl;
-		Pa_Terminate();
-		return false;
-	}
-	return true;
-}
 
 /* Stream */
 
@@ -29,31 +29,42 @@ int Stream::callback(const void* inputBuffer, void* outputBuffer,
 }
 
 bool Stream::open() {
-	_isOpen = true;
+	isOpen = true;
 	return true;
 }
 
 bool Stream::start() {
 	PaError err = Pa_StartStream(_stream);
-	error_handler(err);
+	errorHandlerPA(err);
+	if (err == paNoError) {
+		isStarted = true;
+	}
 	return (err == paNoError);
 }
 
 bool Stream::stop() {
+	if (_stream == nullptr) {
+		return true;
+	}
 	PaError err = Pa_IsStreamActive(_stream);
 	if (err == 1) {
 		err = Pa_StopStream(_stream);
-		error_handler(err);
+		errorHandlerPA(err);
+		isStarted = false;
+	}
+	else if (err < paNoError) {
+		errorHandlerPA(err);
 	}
 	return (err == paNoError);
 }
 
 bool Stream::close() {
 	PaError err;
-	if (_isOpen) {
+	if (isOpen) {
 		err = Pa_CloseStream(_stream);
-		error_handler(err);
-		_isOpen = false;
+		errorHandlerPA(err);
+		_stream = nullptr;
+		isOpen = false;
 		return (err == paNoError);
 	}
 	return true;
@@ -61,7 +72,8 @@ bool Stream::close() {
 
 Stream::Stream() {
 	_stream = nullptr;
-	_isOpen = false;
+	isOpen = false;
+	isStarted = false;
 }
 
 Stream::~Stream() {
@@ -71,7 +83,7 @@ Stream::~Stream() {
 
 /* WAVStream */
 
-WAVStream::WAVStream(WAVHandler* wavHandler, PNFilter* filter_left, PNFilter* filter_right) {
+WAVStream::WAVStream(WAVHandler* const wavHandler, PNFilter* const filter_left, PNFilter* const filter_right) {
 	_wH = wavHandler;
 	_data.left_phase = 0U;
 	_data.right_phase = 0U;
@@ -79,7 +91,8 @@ WAVStream::WAVStream(WAVHandler* wavHandler, PNFilter* filter_left, PNFilter* fi
 	_data.filter_left = filter_left;
 	_data.filter_right = filter_right;
 	_stream = nullptr;
-	_isOpen = false;
+	isOpen = false;
+	isStarted = false;
 }
 
 int WAVStream::callback(const void* inputBuffer, void* outputBuffer,
@@ -113,7 +126,7 @@ bool WAVStream::open() {
 		&WAVStream::callback,
 		&_data);
 
-	error_handler(err);
+	errorHandlerPA(err);
 
 	if (!_wH->open()) {
 		return false;
@@ -124,6 +137,15 @@ bool WAVStream::open() {
 	if (!_wH->loadDataChunk()) {
 		return false;
 	}
-	_isOpen = true;
+	isOpen = true;
 	return true;
 }
+
+bool WAVStream::close() {
+	_wH->close();
+	return Stream::close();
+}
+
+/* AudioHandle */
+
+AudioHandle::AudioHandle() : wH(),  filterLeft(), filterRight(), stream(&wH, &filterLeft, &filterRight) {}
