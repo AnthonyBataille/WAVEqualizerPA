@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <list>
 
 constexpr float PI = 3.141592f;
 
@@ -12,8 +11,8 @@ constexpr float PI = 3.141592f;
  */
 class Filter {
 protected:
-	std::list<float> _last_samples_input;
-	std::list<float> _last_samples_output;
+	std::vector<float> _last_samples_input;
+	std::vector<float> _last_samples_output;
 
 	/**
 	 * @brief Feedback coefficients.
@@ -60,6 +59,7 @@ protected:
 	void compute_coefficients();
 
 public:
+	void updateGain(const float gain);
 	PNFilter();
 	PNFilter(const float Bandwidth, const float gain, const float center_frequency, const float max_frequency);
 	~PNFilter();

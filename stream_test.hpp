@@ -9,8 +9,8 @@
  * The default output device is opened and used.
  */
 typedef struct {
-	float left_phase;
-	float right_phase;
+	float leftPhase;
+	float rightPhase;
 } paTestData_t;
 
 

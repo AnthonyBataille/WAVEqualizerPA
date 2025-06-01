@@ -7,18 +7,21 @@ void Filter::compute_coefficients() {};
 
 float Filter::operator() (const float in_sample) {
 	float out_sample = 0.0f;
-	_last_samples_input.pop_front();
-	_last_samples_input.push_back(in_sample);
-	auto b_it = _coef_b.cbegin();
-	for (auto input_it = _last_samples_input.crbegin(); input_it != _last_samples_input.crend(); ++input_it, ++b_it) {
-		out_sample += (*input_it) * (*b_it);
+
+	auto b_it = _coef_b.crbegin();
+	for (size_t i = 0; i < _last_samples_input.size() - 1; ++i, ++b_it) {
+		_last_samples_input[i] = _last_samples_input[i + 1];
+		out_sample += _last_samples_input[i] * (*b_it);
 	}
-	auto a_it = _coef_a.cbegin();
-	for (auto output_it = _last_samples_output.crbegin(); output_it != _last_samples_output.crend(); ++output_it, ++a_it) {
-		out_sample += (*output_it) * (*a_it);
+	_last_samples_input[_last_samples_input.size() - 1] = in_sample;
+	out_sample += (*b_it) * in_sample;
+	auto a_it = _coef_a.crbegin();
+	for (size_t i = 0; i < _last_samples_output.size() - 1; ++i, ++a_it) {
+		out_sample += _last_samples_output[i] * (*a_it);
+		_last_samples_output[i] = _last_samples_output[i + 1];
 	}
-	_last_samples_output.pop_front();
-	_last_samples_output.push_back(out_sample);
+	out_sample += _last_samples_output[_last_samples_output.size() - 1] * (*a_it);
+	_last_samples_output[_last_samples_output.size() - 1] = out_sample;
 	return out_sample;
 }
 
@@ -36,6 +39,11 @@ void PNFilter::compute_coefficients() {
 	_coef_b[2] = (sqrt_G - _G * tan_B_2) / (sqrt_G + tan_B_2);
 }
 
+void PNFilter::updateGain(const float gain) {
+	_G = gain;
+	compute_coefficients();
+}
+
 PNFilter::PNFilter() : _BW(0.0F), _G(0.0F), _omega_c(0.0F) {}
 
 PNFilter::PNFilter(const float Bandwidth, const float gain, const float center_frenquency, const float max_frequency) {
@@ -47,8 +55,8 @@ PNFilter::PNFilter(const float Bandwidth, const float gain, const float center_f
 
 	compute_coefficients();
 
-	_last_samples_input = std::list<float>(_coef_b.size());
-	_last_samples_output = std::list<float>(_coef_a.size());
+	_last_samples_input = std::vector<float>(_coef_b.size());
+	_last_samples_output = std::vector<float>(_coef_a.size());
 }
 
 PNFilter::~PNFilter() = default;

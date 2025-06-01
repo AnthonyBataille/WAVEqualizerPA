@@ -6,7 +6,6 @@
 #include "filter.hpp"
 
 #include <iostream>
-//#include <string>
 #include <cwchar>
 #include <windows.h>
 #include <commdlg.h>
@@ -54,15 +53,18 @@ bool GUI::closeWAVStream() {
  */
 bool GUI::openWAVStream(const std::wstring& filePath) {
 	// Test values
-	const float f_c = 6000.0f;
-	const float BW = 500.0f;
-	const float f_max = 24000.0f;
-	const float G = 0.01f;
+	constexpr float f_max = 24000.0f;
 
 	audioHandle.wH.init(filePath);
-	audioHandle.filterLeft = PNFilter(BW, G, f_c, f_max);
-	audioHandle.filterRight = PNFilter(BW, G, f_c, f_max);
-	audioHandle.stream = WAVStream(&audioHandle.wH, &audioHandle.filterLeft, &audioHandle.filterRight);
+	for (int i = 0; i < NUM_FILTERS; ++i) {
+		const float f_c = CENTER_FREQUENCIES[i];
+		const float BW = BANDWIDTHS[i];
+		const float G = audioHandle.Gains[i];
+		audioHandle.filtersLeft[i] = PNFilter(BW, G, f_c, f_max);
+		audioHandle.filtersRight[i] = PNFilter(BW, G, f_c, f_max);
+	}
+	
+	audioHandle.stream = WAVStream(&audioHandle.wH, audioHandle.filtersLeft, audioHandle.filtersRight);
 
 	if (!audioHandle.stream.open()) {
 		return false;
@@ -92,13 +94,21 @@ INT_PTR CALLBACK GUI::AboutDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARA
 	return TRUE;
 }
 
-void GUI::updateLabel(HWND hwnd) {
-	int trackbarNum = GetDlgCtrlID(hwnd) - TRACKBAR_ID_PREFIX;
+void GUI::updateFilterGain(HWND hwnd) {
+	const int trackbarNum = GetDlgCtrlID(hwnd) - TRACKBAR_ID_PREFIX;
 	LRESULT pos = SendMessage(_hTrack[trackbarNum], TBM_GETPOS, 0, 0);
 	pos = TRACKBAR_MAXVALUE - pos;
 	std::wstring buf(4, L'\0');
 	std::swprintf(buf.data(), 4, L"%ld", static_cast<int>(pos));
 	SetWindowText(_hlbl[trackbarNum], buf.data());
+
+	
+	const float newGain{ static_cast<float>(pos - TRACKBAR_MINVALUE) / static_cast<float>(TRACKBAR_MAXVALUE - TRACKBAR_MINVALUE) * 2.0f };
+	audioHandle.Gains[trackbarNum] = newGain;
+	if (audioHandle.stream.isOpen) {
+		audioHandle.filtersLeft[trackbarNum].updateGain(newGain);
+		audioHandle.filtersRight[trackbarNum].updateGain(newGain);
+	}
 }
 
 void GUI::createControls(HWND hwnd) {
@@ -107,11 +117,11 @@ void GUI::createControls(HWND hwnd) {
 	icex.dwICC = ICC_LISTVIEW_CLASSES;
 	InitCommonControlsEx(&icex);
 
-	for (size_t i = 0U; i < NUM_TRACKBARS; ++i) {
-		HWND& leftLabel{ _hBottomLabel[i] };
-		leftLabel = CreateWindow(L"Static", L"0", WS_CHILD | WS_VISIBLE, 40*i, 0, 10, 20, hwnd,
+	for (size_t i = 0U; i < NUM_FILTERS; ++i) {
+		HWND& bottomLabel{ _hBottomLabel[i] };
+		bottomLabel = CreateWindow(L"Static", L"1", WS_CHILD | WS_VISIBLE, 40*i, 0, 10, 20, hwnd,
 			BOT_LABEL_IDS()[i], NULL, NULL);
-		if (leftLabel == NULL) {
+		if (bottomLabel == NULL) {
 			wchar_t error_msg[128];
 			DWORD err_code = GetLastError();
 			wsprintf(error_msg, L"Left label Failed. Error %d", err_code);
@@ -119,31 +129,31 @@ void GUI::createControls(HWND hwnd) {
 				MB_ICONEXCLAMATION | MB_OK);
 		}
 	}
-	for (size_t i = 0U; i < NUM_TRACKBARS; ++i) {
-		HWND& rightLabel{ _hTopLabel[i] };
-		rightLabel = CreateWindow(L"Static", L"100", WS_CHILD | WS_VISIBLE, 40*i, 0, 30, 20, hwnd,
+	for (size_t i = 0U; i < NUM_FILTERS; ++i) {
+		HWND& topLabel{ _hTopLabel[i] };
+		topLabel = CreateWindow(L"Static", L"100", WS_CHILD | WS_VISIBLE, 40*i, 0, 30, 20, hwnd,
 			TOP_LABEL_IDS()[i], NULL, NULL);
 	}
 	
-	for (size_t i = 0U; i < NUM_TRACKBARS; ++i) {
+	for (size_t i = 0U; i < NUM_FILTERS; ++i) {
 		HWND& label{ _hlbl[i] };
-		label = CreateWindow(L"Static", L"0", WS_CHILD | WS_VISIBLE, 20+40*i, 230, 30, 20, hwnd,
+		label = CreateWindow(L"Static", L"50", WS_CHILD | WS_VISIBLE, 20+40*i, 230, 30, 20, hwnd,
 			CENTER_LABEL_IDS()[i], NULL, NULL);
 	}
 	
-	for (size_t i = 0U; i < NUM_TRACKBARS; ++i) {
+	for (size_t i = 0U; i < NUM_FILTERS; ++i) {
 		HWND& track{ _hTrack[i] };
 		track = CreateWindow(TRACKBAR_CLASS, L"Trackbar Control", WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_VERT | TBS_BOTTOM,
 			20+40*i, 30, 20, 170, hwnd, TRACKBAR_LABEL_IDS()[i], NULL, NULL);
 		SendMessage(track, TBM_SETRANGE, (WPARAM)TRUE, MAKELONG(TRACKBAR_MINVALUE, TRACKBAR_MAXVALUE));
 		SendMessage(track, TBM_SETPAGESIZE, 0, 10);
 		SendMessage(track, TBM_SETTICFREQ, 10, 0);
-		SendMessage(track, TBM_SETPOS, FALSE, 0);
+		SendMessage(track, TBM_SETPOS, FALSE, (TRACKBAR_MINVALUE + TRACKBAR_MAXVALUE) / 2);
 		SendMessage(track, TBM_SETBUDDY, (WPARAM)FALSE, (LPARAM)_hBottomLabel[i]);
 		SendMessage(track, TBM_SETBUDDY, (WPARAM)TRUE, (LPARAM)_hTopLabel[i]);
 	}
 
-	constexpr int vertLinePos{ 20 + 40 * (NUM_TRACKBARS - 1) + 40 };
+	constexpr int vertLinePos{ 20 + 40 * (NUM_FILTERS - 1) + 40 };
 	HWND verticalSeparator = CreateWindow(L"Static", L"", WS_CHILD | WS_VISIBLE | SS_ETCHEDVERT,
 		vertLinePos, 0, 1, 320, hwnd, (HMENU)VERT_SEP_ID, NULL, NULL);
 
@@ -254,7 +264,7 @@ LRESULT CALLBACK GUI::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_VSCROLL: {
 		GUI* pgui = (GUI*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-		pgui->updateLabel((HWND)lParam);
+		pgui->updateFilterGain((HWND)lParam);
 	}
 	break;
 	case WM_CLOSE: {

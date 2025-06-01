@@ -4,16 +4,42 @@
 #include "wav.hpp"
 #include "filter.hpp"
 
+#include <array>
+
+constexpr int NUM_FILTERS = 8;
+
+constexpr std::array<float, NUM_FILTERS> CENTER_FREQUENCIES{
+	31.5f,
+	63.0f,
+	125.0f,
+	250.0f,
+	500.0f,
+	1000.0f,
+	2000.0f,
+	4000.0f
+};
+
+constexpr std::array<float, NUM_FILTERS> BANDWIDTHS{
+	22.0f,
+	44.0f,
+	89.0f,
+	178.0f,
+	355.0f,
+	710.0f,
+	1420.0f,
+	2840.0f
+};
+
 /**
  * @brief Strucutre that holds left & right instant audio data that will be used as user data in the callback.
  * A pointer to a WAVHandler object is also used in callbacks to read the audio from the opened WAV file.
  */
 typedef struct {
-	int16_t left_phase;
-	int16_t right_phase;
+	int16_t leftPhase;
+	int16_t rightPhase;
 	WAVHandler* wH;
-	PNFilter* filter_left;
-	PNFilter* filter_right;
+	std::array<PNFilter, NUM_FILTERS>* filtersLeft;
+	std::array<PNFilter, NUM_FILTERS>* filterRight;
 } paWavUserData_t;
 
 /**
@@ -65,7 +91,7 @@ protected:
 public:
 	bool open();
 	bool close();
-	WAVStream(WAVHandler* const wavHandler, PNFilter* const filter_left, PNFilter* const filter_right);
+	WAVStream(WAVHandler* const wavHandler, std::array<PNFilter, NUM_FILTERS>& filtersLeft, std::array<PNFilter, NUM_FILTERS>& filterRight);
 
 	WAVStream() = default;
 };
@@ -75,9 +101,10 @@ public:
  */
 class AudioHandle {
 public:
+	std::array<float, NUM_FILTERS> Gains;
 	WAVHandler wH;
-	PNFilter filterLeft;
-	PNFilter filterRight;
+	std::array<PNFilter, NUM_FILTERS> filtersLeft;
+	std::array<PNFilter, NUM_FILTERS> filtersRight;
 	WAVStream stream;
 
 	AudioHandle();

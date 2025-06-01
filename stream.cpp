@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <array>
 
 #ifndef UNICODE
 #define UNICODE
@@ -19,13 +20,13 @@ int Stream::callback(const void* inputBuffer, void* outputBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
 	void* userData) {
-	(void)inputBuffer;
-	(void)outputBuffer;
-	(void)framesPerBuffer;
-	(void)timeInfo;
-	(void)statusFlags;
-	(void)userData;
-	return paContinue;
+		(void)inputBuffer;
+		(void)outputBuffer;
+		(void)framesPerBuffer;
+		(void)timeInfo;
+		(void)statusFlags;
+		(void)userData;
+		return paContinue;
 }
 
 bool Stream::open() {
@@ -83,13 +84,13 @@ Stream::~Stream() {
 
 /* WAVStream */
 
-WAVStream::WAVStream(WAVHandler* const wavHandler, PNFilter* const filter_left, PNFilter* const filter_right) {
+WAVStream::WAVStream(WAVHandler* const wavHandler, std::array<PNFilter, NUM_FILTERS>& filtersLeft, std::array<PNFilter, NUM_FILTERS>& filterRight) {
 	_wH = wavHandler;
-	_data.left_phase = 0U;
-	_data.right_phase = 0U;
+	_data.leftPhase = 0U;
+	_data.rightPhase = 0U;
 	_data.wH = wavHandler;
-	_data.filter_left = filter_left;
-	_data.filter_right = filter_right;
+	_data.filtersLeft = &filtersLeft;
+	_data.filterRight = &filterRight;
 	_stream = nullptr;
 	isOpen = false;
 	isStarted = false;
@@ -101,16 +102,23 @@ int WAVStream::callback(const void* inputBuffer, void* outputBuffer,
 	PaStreamCallbackFlags statusFlags,
 	void* userData) {
 	paWavUserData_t* _data = (paWavUserData_t*)userData;
-	int16_t* out = (int16_t*)outputBuffer;
+	int16_t* out_left = (int16_t*)outputBuffer;
+	int16_t* out_right = out_left + 1;
 	(void)inputBuffer;
 	(void)timeInfo;
 	(void)statusFlags;
 	for (unsigned long frameIndex = 0U; frameIndex < framesPerBuffer; ++frameIndex) {
-		_data->wH->read_next(_data->left_phase, _data->right_phase);
-		PNFilter& filter_left = *(_data->filter_left);
-		PNFilter& filter_right = *(_data->filter_right);
-		*out++ = static_cast<int16_t>(filter_left(static_cast<float>(_data->left_phase)));
-		*out++ = static_cast<int16_t>(filter_right(static_cast<float>(_data->right_phase)));
+		_data->wH->read_next(_data->leftPhase, _data->rightPhase);
+		*out_left = _data->leftPhase;
+		*out_right = _data->rightPhase;
+		for (size_t i = 0; i < NUM_FILTERS; ++i) {
+			PNFilter& filtersLeft = _data->filtersLeft->at(i);
+			PNFilter& filterRight = _data->filterRight->at(i);
+			*out_left = static_cast<int16_t>(filtersLeft(static_cast<float>(*out_left)));
+			*out_right = static_cast<int16_t>(filterRight(static_cast<float>(*out_right)));
+		}
+		out_left += 2;
+		out_right += 2;
 	}
 	return paContinue;
 }
@@ -148,4 +156,8 @@ bool WAVStream::close() {
 
 /* AudioHandle */
 
-AudioHandle::AudioHandle() : wH(),  filterLeft(), filterRight(), stream(&wH, &filterLeft, &filterRight) {}
+AudioHandle::AudioHandle() : Gains(), wH(), filtersLeft(), filtersRight(), stream(&wH, filtersLeft, filtersRight) {
+	for (float& g : Gains){
+		g = 1.0f;
+	}
+}

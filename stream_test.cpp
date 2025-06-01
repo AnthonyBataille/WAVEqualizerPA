@@ -16,16 +16,16 @@ int SawToothStream::callback(const void* inputBuffer, void* outputBuffer,
 	(void)statusFlags;
 
 	for (unsigned long i = 0; i < framesPerBuffer; ++i) {
-		*out++ = _data->left_phase;
-		*out++ = _data->right_phase;
-		_data->left_phase += 0.001f;
-		if (_data->left_phase >= 1.0f) {
-			_data->left_phase = -1.0f;
+		*out++ = _data->leftPhase;
+		*out++ = _data->rightPhase;
+		_data->leftPhase += 0.001f;
+		if (_data->leftPhase >= 1.0f) {
+			_data->leftPhase = -1.0f;
 		}
 
-		_data->right_phase += 0.001f;
-		if (_data->right_phase >= 2.0f) {
-			_data->right_phase = -1.0f;
+		_data->rightPhase += 0.001f;
+		if (_data->rightPhase >= 2.0f) {
+			_data->rightPhase = -1.0f;
 		}
 	}
 
@@ -52,8 +52,8 @@ bool SawToothStream::open() {
 }
 
 SawToothStream::SawToothStream() {
-	_data.left_phase = 0.0f;
-	_data.right_phase = 0.0f;
+	_data.leftPhase = 0.0f;
+	_data.rightPhase = 0.0f;
 	_stream = nullptr;
 	_isOpen = false;
 }

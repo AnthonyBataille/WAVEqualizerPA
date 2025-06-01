@@ -11,7 +11,6 @@
 
 /* List of GUI objects identifiers */
 
-constexpr int NUM_TRACKBARS = 8;
 constexpr int TRACKBAR_MINVALUE = 0;
 constexpr int TRACKBAR_MAXVALUE = 100;
 constexpr int BOT_LABEL_ID_PREFIX = 300;
@@ -27,33 +26,33 @@ constexpr int OPEN_FILE_BUTTON_ID = 804;
 constexpr int PLAY_BUTTON_ID = 805;
 constexpr int STOP_BUTTON_ID = 806;
 
-constexpr std::array<HMENU, NUM_TRACKBARS> BOT_LABEL_IDS() {
-	std::array<HMENU, NUM_TRACKBARS> res{};
-	for (int i = 0; i < NUM_TRACKBARS; ++i) {
+constexpr std::array<HMENU, NUM_FILTERS> BOT_LABEL_IDS() {
+	std::array<HMENU, NUM_FILTERS> res{};
+	for (int i = 0; i < NUM_FILTERS; ++i) {
 		res[i] = (HMENU)(BOT_LABEL_ID_PREFIX + i);
 	}
 	return res;
 }
 
-constexpr std::array<HMENU, NUM_TRACKBARS> TOP_LABEL_IDS() {
-	std::array<HMENU, NUM_TRACKBARS> res{};
-	for (int i = 0; i < NUM_TRACKBARS; ++i) {
+constexpr std::array<HMENU, NUM_FILTERS> TOP_LABEL_IDS() {
+	std::array<HMENU, NUM_FILTERS> res{};
+	for (int i = 0; i < NUM_FILTERS; ++i) {
 		res[i] = (HMENU)(TOP_LABEL_ID_PREFIX + i);
 	}
 	return res;
 }
 
-constexpr std::array<HMENU, NUM_TRACKBARS> CENTER_LABEL_IDS() {
-	std::array<HMENU, NUM_TRACKBARS> res{};
-	for (int i = 0; i < NUM_TRACKBARS; ++i) {
+constexpr std::array<HMENU, NUM_FILTERS> CENTER_LABEL_IDS() {
+	std::array<HMENU, NUM_FILTERS> res{};
+	for (int i = 0; i < NUM_FILTERS; ++i) {
 		res[i] = (HMENU)(CENTER_LABEL_ID_PREFIX + i);
 	}
 	return res;
 }
 
-constexpr std::array<HMENU, NUM_TRACKBARS> TRACKBAR_LABEL_IDS() {
-	std::array<HMENU, NUM_TRACKBARS> res{};
-	for (int i = 0; i < NUM_TRACKBARS; ++i) {
+constexpr std::array<HMENU, NUM_FILTERS> TRACKBAR_LABEL_IDS() {
+	std::array<HMENU, NUM_FILTERS> res{};
+	for (int i = 0; i < NUM_FILTERS; ++i) {
 		res[i] = (HMENU)(TRACKBAR_ID_PREFIX + i);
 	}
 	return res;
@@ -85,7 +84,7 @@ private:
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	static INT_PTR CALLBACK AboutDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-	void updateLabel(HWND hwnd);
+	void updateFilterGain(HWND hwnd);
 	bool registerWindowClass();
 
 	
