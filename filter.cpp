@@ -60,3 +60,14 @@ PNFilter::PNFilter(const float Bandwidth, const float gain, const float center_f
 }
 
 PNFilter::~PNFilter() = default;
+
+float limiter(const float in, const float threshold) {
+	float out = in;
+	if (in > threshold) {
+		out = threshold;
+	}
+	else if (in < -threshold) {
+		out = -threshold;
+	}
+	return out;
+}

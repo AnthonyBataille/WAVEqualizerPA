@@ -6,7 +6,7 @@
 
 #include <array>
 
-constexpr int NUM_FILTERS = 8;
+constexpr int NUM_FILTERS = 10;
 
 constexpr std::array<float, NUM_FILTERS> CENTER_FREQUENCIES{
 	31.5f,
@@ -16,7 +16,9 @@ constexpr std::array<float, NUM_FILTERS> CENTER_FREQUENCIES{
 	500.0f,
 	1000.0f,
 	2000.0f,
-	4000.0f
+	4000.0f,
+	8000.0f,
+	16000.0f
 };
 
 constexpr std::array<float, NUM_FILTERS> BANDWIDTHS{
@@ -27,7 +29,9 @@ constexpr std::array<float, NUM_FILTERS> BANDWIDTHS{
 	355.0f,
 	710.0f,
 	1420.0f,
-	2840.0f
+	2840.0f,
+	5680.0f,
+	11360.0f
 };
 
 /**

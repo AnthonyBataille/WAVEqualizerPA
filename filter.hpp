@@ -64,3 +64,5 @@ public:
 	PNFilter(const float Bandwidth, const float gain, const float center_frequency, const float max_frequency);
 	~PNFilter();
 };
+
+float limiter(const float in, const float threshold);

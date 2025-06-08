@@ -238,7 +238,6 @@ LRESULT CALLBACK GUI::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						MessageBox(hwnd, error_msg, L"Error!",
 							MB_ICONEXCLAMATION | MB_OK);
 					}
-					
 				}
 			}
 			break;
@@ -312,7 +311,7 @@ bool GUI::registerWindowClass() {
 		g_szClassName,
 		L"WAVEqualizerPA",
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-		CW_USEDEFAULT, CW_USEDEFAULT, 560, 320,
+		CW_USEDEFAULT, CW_USEDEFAULT, 20 + 40 * (NUM_FILTERS - 1) + 40 + 220, 320,
 		NULL, NULL, _hInstance, this);
 	if (_hwnd == NULL) {
 		wchar_t error_msg[128];

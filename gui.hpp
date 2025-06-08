@@ -69,10 +69,10 @@ private:
 	HINSTANCE _hInstance;
 	int _nCmdShow;
 
-	std::array<HWND, 8> _hlbl;
-	std::array<HWND, 8> _hTrack;
-	std::array<HWND, 8> _hBottomLabel;
-	std::array<HWND, 8> _hTopLabel;
+	std::array<HWND, NUM_FILTERS> _hlbl;
+	std::array<HWND, NUM_FILTERS> _hTrack;
+	std::array<HWND, NUM_FILTERS> _hBottomLabel;
+	std::array<HWND, NUM_FILTERS> _hTopLabel;
 	OPENFILENAME _wavFileNameDialog;
 	std::wstring _wavFileName;
 	HWND _fileNameTextBox;

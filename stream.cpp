@@ -5,13 +5,19 @@
 #ifndef UNICODE
 #define UNICODE
 #endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 
 #include <windows.h>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <cwchar>
 #include "portaudio.h"
 #include "stream.hpp"
+
+constexpr static float LIMITER_THRESHOLD = static_cast<float>(std::numeric_limits<int16_t>::max()) * 0.9f;
 
 /* Stream */
 
@@ -114,8 +120,13 @@ int WAVStream::callback(const void* inputBuffer, void* outputBuffer,
 		for (size_t i = 0; i < NUM_FILTERS; ++i) {
 			PNFilter& filtersLeft = _data->filtersLeft->at(i);
 			PNFilter& filterRight = _data->filterRight->at(i);
-			*out_left = static_cast<int16_t>(filtersLeft(static_cast<float>(*out_left)));
-			*out_right = static_cast<int16_t>(filterRight(static_cast<float>(*out_right)));
+			float left = filtersLeft(static_cast<float>(*out_left));
+			float right = filterRight(static_cast<float>(*out_right));
+
+			left = limiter(left, LIMITER_THRESHOLD);
+			right = limiter(right, LIMITER_THRESHOLD);
+			*out_left = static_cast<int16_t>(left);
+			*out_right = static_cast<int16_t>(right);
 		}
 		out_left += 2;
 		out_right += 2;
