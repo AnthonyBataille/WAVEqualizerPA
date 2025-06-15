@@ -5,8 +5,10 @@
 #endif
 
 #include <windows.h>
+
 #include <array>
 #include <string>
+
 #include "stream.hpp"
 
 /* List of GUI objects identifiers */
@@ -27,73 +29,74 @@ constexpr int PLAY_BUTTON_ID = 805;
 constexpr int STOP_BUTTON_ID = 806;
 
 constexpr std::array<HMENU, NUM_FILTERS> BOT_LABEL_IDS() {
-	std::array<HMENU, NUM_FILTERS> res{};
-	for (int i = 0; i < NUM_FILTERS; ++i) {
-		res[i] = (HMENU)(BOT_LABEL_ID_PREFIX + i);
-	}
-	return res;
+  std::array<HMENU, NUM_FILTERS> res{};
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    res[i] = (HMENU)(BOT_LABEL_ID_PREFIX + i);
+  }
+  return res;
 }
 
 constexpr std::array<HMENU, NUM_FILTERS> TOP_LABEL_IDS() {
-	std::array<HMENU, NUM_FILTERS> res{};
-	for (int i = 0; i < NUM_FILTERS; ++i) {
-		res[i] = (HMENU)(TOP_LABEL_ID_PREFIX + i);
-	}
-	return res;
+  std::array<HMENU, NUM_FILTERS> res{};
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    res[i] = (HMENU)(TOP_LABEL_ID_PREFIX + i);
+  }
+  return res;
 }
 
 constexpr std::array<HMENU, NUM_FILTERS> CENTER_LABEL_IDS() {
-	std::array<HMENU, NUM_FILTERS> res{};
-	for (int i = 0; i < NUM_FILTERS; ++i) {
-		res[i] = (HMENU)(CENTER_LABEL_ID_PREFIX + i);
-	}
-	return res;
+  std::array<HMENU, NUM_FILTERS> res{};
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    res[i] = (HMENU)(CENTER_LABEL_ID_PREFIX + i);
+  }
+  return res;
 }
 
 constexpr std::array<HMENU, NUM_FILTERS> TRACKBAR_LABEL_IDS() {
-	std::array<HMENU, NUM_FILTERS> res{};
-	for (int i = 0; i < NUM_FILTERS; ++i) {
-		res[i] = (HMENU)(TRACKBAR_ID_PREFIX + i);
-	}
-	return res;
+  std::array<HMENU, NUM_FILTERS> res{};
+  for (int i = 0; i < NUM_FILTERS; ++i) {
+    res[i] = (HMENU)(TRACKBAR_ID_PREFIX + i);
+  }
+  return res;
 }
 
 /**
- * @brief The GUI class implements the graphical user interface for opening/closing audio files, playing/stopping player,
- * add the equalizer trackbars (8 in total).
+ * @brief The GUI class implements the graphical user interface for
+ * opening/closing audio files, playing/stopping player, add the equalizer
+ * trackbars (8 in total).
  */
 class GUI {
 private:
-	WNDCLASSEX _wc;
-	HWND _hwnd;
-	HINSTANCE _hInstance;
-	int _nCmdShow;
+  WNDCLASSEX _wc;
+  HWND _hwnd;
+  HINSTANCE _hInstance;
+  int _nCmdShow;
 
-	std::array<HWND, NUM_FILTERS> _hlbl;
-	std::array<HWND, NUM_FILTERS> _hTrack;
-	std::array<HWND, NUM_FILTERS> _hBottomLabel;
-	std::array<HWND, NUM_FILTERS> _hTopLabel;
-	OPENFILENAME _wavFileNameDialog;
-	std::wstring _wavFileName;
-	HWND _fileNameTextBox;
+  std::array<HWND, NUM_FILTERS> _hlbl;
+  std::array<HWND, NUM_FILTERS> _hTrack;
+  std::array<HWND, NUM_FILTERS> _hBottomLabel;
+  std::array<HWND, NUM_FILTERS> _hTopLabel;
+  OPENFILENAME _wavFileNameDialog;
+  std::wstring _wavFileName;
+  HWND _fileNameTextBox;
 
-	bool openWAVStream(const std::wstring& filePath);
-	bool closeWAVStream();
+  bool openWAVStream(const std::wstring &filePath);
+  bool closeWAVStream();
 
-	void createControls(HWND hwnd);
-	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	static INT_PTR CALLBACK AboutDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+  void createControls(HWND hwnd);
+  static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam,
+                                  LPARAM lParam);
+  static INT_PTR CALLBACK AboutDlgProc(HWND hwnd, UINT message, WPARAM wParam,
+                                       LPARAM lParam);
 
-	void updateFilterGain(HWND hwnd);
-	bool registerWindowClass();
-
-	
+  void updateFilterGain(HWND hwnd);
+  bool registerWindowClass();
 
 public:
-	AudioHandle audioHandle;
+  AudioHandle audioHandle;
 
-	void runMessageLoop(MSG& msg);
+  void runMessageLoop(MSG &msg);
 
-	GUI::GUI(HINSTANCE hInstance, const int nCmdShow, bool& result);
-	GUI::~GUI() = default;
+  GUI::GUI(HINSTANCE hInstance, const int nCmdShow, bool &result);
+  GUI::~GUI() = default;
 };
