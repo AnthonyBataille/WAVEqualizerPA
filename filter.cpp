@@ -9,7 +9,7 @@ void Filter::compute_coefficients() {};
 float Filter::operator()(const float in_sample) {
   float out_sample = 0.0f;
 
-  /* last samples history are moved to the beggining by 1 step which makes room
+  /* Last samples history are moved to the beggining by 1 step which makes room
    * to add a new one */
   auto b_it = _coef_b.crbegin();
   for (size_t i = 0; i < _last_samples_input.size() - 1; ++i, ++b_it) {

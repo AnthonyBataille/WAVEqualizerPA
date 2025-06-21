@@ -168,6 +168,6 @@ AudioHandle::AudioHandle()
     : Gains(), wH(), filtersLeft(), filtersRight(),
       stream(&wH, filtersLeft, filtersRight) {
   for (float &g : Gains) {
-    g = 1.0f;
+    g = 0.5f;
   }
 }

@@ -57,7 +57,6 @@ bool GUI::closeWAVStream() {
  * @brief Open the selected audio file.
  */
 bool GUI::openWAVStream(const std::wstring &filePath) {
-  // Test values
   constexpr float f_max = 24000.0f;
 
   audioHandle.wH.init(filePath);
@@ -110,7 +109,7 @@ void GUI::updateFilterGain(HWND hwnd) {
 
   const float newGain{
       static_cast<float>(pos - TRACKBAR_MINVALUE) /
-      static_cast<float>(TRACKBAR_MAXVALUE - TRACKBAR_MINVALUE) * 2.0f};
+      static_cast<float>(TRACKBAR_MAXVALUE - TRACKBAR_MINVALUE)};
   audioHandle.Gains[trackbarNum] = newGain;
   if (audioHandle.stream.isOpen) {
     audioHandle.filtersLeft[trackbarNum].updateGain(newGain);
